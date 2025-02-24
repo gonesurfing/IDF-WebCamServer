@@ -57,7 +57,6 @@ static camera_config_t camera_config =
     .xclk_freq_hz = 20000000,
     .frame_size = FRAMESIZE_UXGA, //Set to maximum resolution by default so that buffer is maximized
     .pixel_format = PIXFORMAT_JPEG,
-    //.grab_mode = CAMERA_GRAB_WHEN_EMPTY,
     .grab_mode = CAMERA_GRAB_LATEST,
     .fb_location = CAMERA_FB_IN_PSRAM,
     .jpeg_quality = 12,
@@ -165,6 +164,18 @@ void app_main(void)
 
     if(ESP_OK != init_camera()) {
         ESP_LOGE(TAG, "Camera Init Failed");
+        return;
+    }
+
+    // Set the frame size back to something sane for streaming.
+    // Otherwise it seems to bog down LWIP on startup.
+    sensor_t *s = esp_camera_sensor_get();
+    int res = 0;
+    int framesize = 11;
+    res = s->set_framesize(s, (framesize_t)framesize);
+
+    if(res <0){
+        ESP_LOGE(TAG, "Failed to set frame size");
         return;
     }
 
